@@ -2,9 +2,18 @@
 import axios from 'axios';
 
 // En desarrollo usa el proxy de Vite ('/api').
-// En producción: define VITE_API_URL en Vercel (sin / al final) y redeploy.
+// En producción: VITE_API_URL en Vercel debe ser URL absoluta con https:// (ej. https://xxx.up.railway.app).
+function normalizeBackendUrl(raw: string): string {
+  let url = raw.trim().replace(/\/+$/, '');
+  if (!url) return '';
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`;
+  }
+  return url;
+}
+
 const rawBackend = (import.meta.env.VITE_API_URL as string | undefined) || '';
-export const BACKEND_URL = rawBackend.replace(/\/+$/, '');
+export const BACKEND_URL = normalizeBackendUrl(rawBackend);
 
 if (import.meta.env.PROD && !BACKEND_URL) {
   console.error(
