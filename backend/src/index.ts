@@ -15,22 +15,38 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+function stripTrailingSlash(url: string): string {
+  return url.replace(/\/+$/, '');
+}
+
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
-].filter(Boolean) as string[];
+]
+  .filter(Boolean)
+  .map((o) => stripTrailingSlash(o as string)) as string[];
 
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.some((o) => origin.startsWith(o))) {
+    if (!origin) {
       callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+      return;
     }
+    const reqOrigin = stripTrailingSlash(origin);
+    const ok = allowedOrigins.some(
+      (allowed) => reqOrigin === allowed || reqOrigin.startsWith(`${allowed}/`)
+    );
+    if (ok) {
+      callback(null, origin);
+      return;
+    }
+    console.warn('[CORS] Origen rechazado:', origin, '| permitidos:', allowedOrigins);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));

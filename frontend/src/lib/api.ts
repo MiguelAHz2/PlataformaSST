@@ -2,11 +2,18 @@
 import axios from 'axios';
 
 // En desarrollo usa el proxy de Vite ('/api').
-// En producción apunta directamente al backend en Railway.
-export const BACKEND_URL = import.meta.env.VITE_API_URL || '';
+// En producción: define VITE_API_URL en Vercel (sin / al final) y redeploy.
+const rawBackend = (import.meta.env.VITE_API_URL as string | undefined) || '';
+export const BACKEND_URL = rawBackend.replace(/\/+$/, '');
+
+if (import.meta.env.PROD && !BACKEND_URL) {
+  console.error(
+    '[SST] Falta VITE_API_URL en el build de Vercel. Añádela en Settings → Environment Variables y vuelve a desplegar.'
+  );
+}
 
 const api = axios.create({
-  baseURL: `${BACKEND_URL}/api`,
+  baseURL: BACKEND_URL ? `${BACKEND_URL}/api` : '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
