@@ -29,3 +29,18 @@ export function vimeoEmbedFromUrl(url: string): string | null {
 export function getVideoEmbedUrl(url: string): string | null {
   return youtubeEmbedFromUrl(url) || vimeoEmbedFromUrl(url);
 }
+
+/** URL que parece un PDF público (para visor de Google). */
+export function isLikelyPdfUrl(url: string): boolean {
+  try {
+    const u = new URL(url.trim());
+    return /\.pdf$/i.test(u.pathname) || /[./]pdf(\?|$)/i.test(u.pathname + u.search);
+  } catch {
+    return /\.pdf(\?|$)/i.test(url);
+  }
+}
+
+/** Archivo de video directo (mp4, webm, etc.). */
+export function isDirectVideoFileUrl(url: string): boolean {
+  return /\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(url.trim());
+}

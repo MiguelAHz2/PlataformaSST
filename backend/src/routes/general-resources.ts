@@ -1,11 +1,17 @@
 import { Router, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
+import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
 import multer from 'multer';
 import { Prisma } from '@prisma/client';
 import prisma from '../lib/prisma';
 import { authenticate, requireAdmin, AuthRequest } from '../middleware/auth';
 import { uploadGeneralResource, detectFileType } from '../middleware/upload';
+
+function effectiveFileKind(resource: { fileKind?: string | null; originalName?: string | null }): string {
+  return resource.fileKind || detectFileType(resource.originalName || 'file.bin');
+}
 
 const router = Router();
 
@@ -52,6 +58,56 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
     res.json(items);
   } catch (error) {
     handleRouteError(res, error, 'Error al listar recursos');
+  }
+});
+
+/** Vista previa Word/Excel (misma lógica que lecciones) */
+router.get('/:id/preview', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const isAdmin = req.user?.role === 'ADMIN';
+
+    const resource = await prisma.generalResource.findFirst({
+      where: {
+        id,
+        kind: 'FILE',
+        ...(isAdmin ? {} : { isPublished: true }),
+      },
+    });
+
+    if (!resource?.fileUrl) {
+      res.status(404).json({ message: 'Archivo no encontrado' });
+      return;
+    }
+
+    const fk = effectiveFileKind(resource);
+    const filePath = path.join(process.cwd(), resource.fileUrl.replace(/^\//, ''));
+
+    if (!fs.existsSync(filePath)) {
+      res.status(404).json({ message: 'El archivo no existe en el servidor' });
+      return;
+    }
+
+    if (fk === 'WORD') {
+      const result = await mammoth.convertToHtml({ path: filePath });
+      res.json({ html: result.value, type: 'WORD' });
+      return;
+    }
+
+    if (fk === 'EXCEL') {
+      const workbook = XLSX.readFile(filePath);
+      const sheets: Record<string, string> = {};
+      workbook.SheetNames.forEach((name) => {
+        sheets[name] = XLSX.utils.sheet_to_html(workbook.Sheets[name], { editable: false });
+      });
+      res.json({ sheets, sheetNames: workbook.SheetNames, type: 'EXCEL' });
+      return;
+    }
+
+    res.status(400).json({ message: 'Este tipo de archivo no usa vista previa por API (usa el visor integrado en la página).' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al generar previsualización' });
   }
 });
 
