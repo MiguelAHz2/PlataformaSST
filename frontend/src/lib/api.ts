@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import axios from 'axios';
 
 // En desarrollo usa el proxy de Vite ('/api').

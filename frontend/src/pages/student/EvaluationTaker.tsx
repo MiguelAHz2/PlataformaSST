@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import api from '../../lib/api';
 import { Evaluation, Question } from '../../lib/types';
 import { ArrowLeft, Clock, CheckCircle2, XCircle, AlertCircle, Send } from 'lucide-react';
 
 export default function EvaluationTaker() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState<Record<string, string>>({});

@@ -1,6 +1,6 @@
 export type Role = 'ADMIN' | 'STUDENT';
 export type Level = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-export type LessonType = 'TEXT' | 'VIDEO' | 'PDF' | 'PRESENTATION';
+export type LessonType = 'TEXT' | 'VIDEO' | 'PDF' | 'PRESENTATION' | 'WORD' | 'EXCEL' | 'IMAGE' | 'FILE';
 export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE';
 
 export interface Company {
@@ -112,6 +112,7 @@ export interface WorkshopSubmission {
   feedback?: string;
   submittedAt: string;
   gradedAt?: string;
+  attemptCount: number;
   user?: User;
   workshop?: Workshop;
 }

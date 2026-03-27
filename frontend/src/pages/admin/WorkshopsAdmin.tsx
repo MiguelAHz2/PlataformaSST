@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../../lib/api';
 import { Workshop, WorkshopSubmission, Course } from '../../lib/types';
 import { BACKEND_URL } from '../../lib/api';
