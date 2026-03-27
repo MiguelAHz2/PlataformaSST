@@ -105,7 +105,7 @@ export default function GeneralResourcesAdmin() {
           fd.append('description', form.description);
           fd.append('order', form.order);
           fd.append('isPublished', String(form.isPublished));
-          fd.append('orgId', form.orgId);
+          if (form.orgId) fd.append('orgId', form.orgId);
           fd.append('file', file);
           await api.put(`/general-resources/${editing.id}`, fd);
         } else {
@@ -125,7 +125,7 @@ export default function GeneralResourcesAdmin() {
         fd.append('kind', form.kind);
         fd.append('order', form.order);
         fd.append('isPublished', String(form.isPublished));
-        fd.append('orgId', form.orgId);
+        if (form.orgId) fd.append('orgId', form.orgId);
         if (form.kind === 'FILE') {
           if (!file) {
             setError('Selecciona un archivo');
@@ -141,8 +141,13 @@ export default function GeneralResourcesAdmin() {
       setShowModal(false);
       fetchData();
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setError(axiosErr.response?.data?.message || 'Error al guardar');
+      const axiosErr = err as {
+        response?: { data?: { message?: string; detail?: string } };
+      };
+      const d = axiosErr.response?.data;
+      setError(
+        [d?.message, d?.detail].filter(Boolean).join(' — ') || 'Error al guardar'
+      );
     } finally {
       setSaving(false);
     }

@@ -1,11 +1,50 @@
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
+import multer from 'multer';
+import { Prisma } from '@prisma/client';
 import prisma from '../lib/prisma';
 import { authenticate, requireAdmin, AuthRequest } from '../middleware/auth';
 import { uploadGeneralResource, detectFileType } from '../middleware/upload';
 
 const router = Router();
+
+/** Evita orgId inválido (p. ej. string "undefined" desde FormData). */
+function parseOrgId(raw: unknown): string | null {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  if (!s || s === 'undefined' || s === 'null') return null;
+  return s;
+}
+
+async function resolveOrgId(raw: unknown): Promise<string | null> {
+  const id = parseOrgId(raw);
+  if (!id) return null;
+  const company = await prisma.company.findUnique({ where: { id }, select: { id: true } });
+  return company ? id : null;
+}
+
+function handleRouteError(res: Response, error: unknown, fallback: string): void {
+  console.error('[general-resources]', error);
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === 'P2003') {
+      res.status(400).json({ message: 'Empresa no válida. Elige otra o “Todas las empresas”.' });
+      return;
+    }
+  }
+  const msg = error instanceof Error ? error.message : String(error);
+  if (/GeneralResource|general_resource/i.test(msg) && /does not exist|relation|no existe/i.test(msg)) {
+    res.status(503).json({
+      message:
+        'Falta la tabla en la base de datos. En Railway ejecuta una vez: npx prisma db push (con DATABASE_URL)',
+    });
+    return;
+  }
+  res.status(500).json({
+    message: fallback,
+    detail: msg.length > 400 ? `${msg.slice(0, 400)}…` : msg,
+  });
+}
 
 function deleteFileIfExists(fileUrl: string | null | undefined) {
   if (!fileUrl || !fileUrl.startsWith('/uploads/')) return;
@@ -39,8 +78,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 
     res.json(items);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al listar recursos' });
+    handleRouteError(res, error, 'Error al listar recursos');
   }
 });
 
@@ -70,8 +108,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response): Promis
 
     res.json(item);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener recurso' });
+    handleRouteError(res, error, 'Error al obtener recurso');
   }
 });
 
@@ -79,13 +116,24 @@ router.post(
   '/',
   authenticate,
   requireAdmin,
-  uploadGeneralResource.single('file'),
+  (req: AuthRequest, res: Response, next: NextFunction) => {
+    uploadGeneralResource.single('file')(req, res, (err: unknown) => {
+      if (err) next(err);
+      else next();
+    });
+  },
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { title, description, kind, orgId, externalUrl, order, isPublished } = req.body;
 
       if (!title?.trim()) {
         res.status(400).json({ message: 'El título es requerido' });
+        return;
+      }
+
+      const resolvedOrgId = await resolveOrgId(orgId);
+      if (parseOrgId(orgId) && !resolvedOrgId) {
+        res.status(400).json({ message: 'La empresa seleccionada no existe.' });
         return;
       }
 
@@ -108,9 +156,9 @@ router.post(
             originalName,
             fileKind,
             externalUrl: null,
-            order: order ? parseInt(String(order), 10) || 0 : 0,
+            order: order !== undefined && order !== '' ? parseInt(String(order), 10) || 0 : 0,
             isPublished: isPublished === 'true' || isPublished === true,
-            orgId: orgId && String(orgId).trim() ? String(orgId) : null,
+            orgId: resolvedOrgId,
           },
           include: { org: { select: { id: true, name: true } } },
         });
@@ -133,9 +181,9 @@ router.post(
             originalName: null,
             fileKind: null,
             externalUrl: url,
-            order: order ? parseInt(String(order), 10) || 0 : 0,
+            order: order !== undefined && order !== '' ? parseInt(String(order), 10) || 0 : 0,
             isPublished: isPublished === 'true' || isPublished === true,
-            orgId: orgId && String(orgId).trim() ? String(orgId) : null,
+            orgId: resolvedOrgId,
           },
           include: { org: { select: { id: true, name: true } } },
         });
@@ -145,8 +193,7 @@ router.post(
 
       res.status(400).json({ message: 'Tipo de recurso no válido' });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error al crear recurso' });
+      handleRouteError(res, error, 'Error al crear recurso');
     }
   }
 );
@@ -155,7 +202,12 @@ router.put(
   '/:id',
   authenticate,
   requireAdmin,
-  uploadGeneralResource.single('file'),
+  (req: AuthRequest, res: Response, next: NextFunction) => {
+    uploadGeneralResource.single('file')(req, res, (err: unknown) => {
+      if (err) next(err);
+      else next();
+    });
+  },
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
@@ -183,7 +235,14 @@ router.put(
       if (description !== undefined) data.description = description?.trim() || null;
       if (order !== undefined) data.order = parseInt(String(order), 10) || 0;
       if (isPublished !== undefined) data.isPublished = isPublished === 'true' || isPublished === true;
-      if (orgId !== undefined) data.orgId = orgId && String(orgId).trim() ? String(orgId) : null;
+      if (orgId !== undefined) {
+        const resolved = await resolveOrgId(orgId);
+        if (parseOrgId(orgId) && !resolved) {
+          res.status(400).json({ message: 'La empresa seleccionada no existe.' });
+          return;
+        }
+        data.orgId = resolved;
+      }
 
       if (existing.kind === 'FILE' && req.file) {
         deleteFileIfExists(existing.fileUrl);
@@ -209,8 +268,7 @@ router.put(
 
       res.json(updated);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error al actualizar recurso' });
+      handleRouteError(res, error, 'Error al actualizar recurso');
     }
   }
 );
@@ -227,9 +285,24 @@ router.delete('/:id', authenticate, requireAdmin, async (req: AuthRequest, res: 
     await prisma.generalResource.delete({ where: { id } });
     res.json({ ok: true });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al eliminar recurso' });
+    handleRouteError(res, error, 'Error al eliminar recurso');
   }
+});
+
+router.use((err: unknown, _req: AuthRequest, res: Response, next: NextFunction) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      res.status(400).json({ message: 'El archivo supera el tamaño máximo (100 MB).' });
+      return;
+    }
+    res.status(400).json({ message: err.message });
+    return;
+  }
+  if (err instanceof Error && err.message.includes('Tipo de archivo no permitido')) {
+    res.status(400).json({ message: err.message });
+    return;
+  }
+  handleRouteError(res, err, 'Error al procesar la solicitud');
 });
 
 export default router;

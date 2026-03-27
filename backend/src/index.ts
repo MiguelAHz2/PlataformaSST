@@ -2,6 +2,7 @@ import express from 'express';
 import cors, { CorsOptions } from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
 import authRoutes from './routes/auth';
 import courseRoutes from './routes/courses';
@@ -12,6 +13,11 @@ import companyRoutes from './routes/companies';
 import generalResourceRoutes from './routes/general-resources';
 
 dotenv.config();
+
+const uploadRoot = path.join(__dirname, '../uploads');
+['lessons', 'workshops', 'general-resources'].forEach((sub) => {
+  fs.mkdirSync(path.join(uploadRoot, sub), { recursive: true });
+});
 
 const app = express();
 const PORT = process.env.PORT || 3001;
