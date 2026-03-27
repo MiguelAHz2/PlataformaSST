@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  nit       String?
+  contact   String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  courses     Course[]
+  workshops   Workshop[]
+  evaluations Evaluation[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("STUDENT")
+  avatar    String?
+  company   String?
+  position  String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  orgId     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org                 Company?            @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  enrollments         Enrollment[]
+  submissions         Submission[]
+  certificates        Certificate[]
+  completions         LessonCompletion[]
+  workshopSubmissions WorkshopSubmission[]
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  image       String?
+  category    String   @default("General")
+  duration    String?
+  level       String   @default("BEGINNER")
+  isPublished Boolean  @default(false)
+  orgId       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  org         Company?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  modules     Module[]
+  enrollments Enrollment[]
+  evaluations Evaluation[]
+  workshops   Workshop[]
+}
+
+model Module {
+  id       String @id @default(cuid())
+  title    String
+  order    Int    @default(0)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  lessons Lesson[]
+}
+
+model Lesson {
+  id           String   @id @default(cuid())
+  title        String
+  content      String?
+  type         String   @default("TEXT")
+  fileUrl      String?
+  originalName String?
+  videoUrl     String?
+  duration     Int?
+  order        Int      @default(0)
+  moduleId     String
+  module       Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  completions LessonCompletion[]
+}
+
+model LessonCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  lesson Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([userId, lessonId])
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    String
+  progress    Float     @default(0)
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model Evaluation {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  courseId     String
+  timeLimit    Int?
+  passingScore Int       @default(70)
+  isPublished  Boolean   @default(false)
+  dueDate      DateTime?
+  orgId        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  org         Company?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  submissions Submission[]
+}
+
+model Question {
+  id           String  @id @default(cuid())
+  text         String
+  type         String  @default("MULTIPLE_CHOICE")
+  points       Int     @default(1)
+  order        Int     @default(0)
+  evaluationId String
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  options    Option[]
+  answers    Answer[]
+}
+
+model Option {
+  id         String  @id @default(cuid())
+  text       String
+  isCorrect  Boolean @default(false)
+  questionId String
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers  Answer[]
+}
+
+model Submission {
+  id           String    @id @default(cuid())
+  userId       String
+  evaluationId String
+  score        Float?
+  passed       Boolean?
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  user       User       @relation(fields: [userId], references: [id])
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id])
+  answers    Answer[]
+
+  @@unique([userId, evaluationId])
+}
+
+model Answer {
+  id           String   @id @default(cuid())
+  submissionId String
+  questionId   String
+  optionId     String?
+  isCorrect    Boolean?
+
+  submission Submission @relation(fields: [submissionId], references: [id])
+  question   Question   @relation(fields: [questionId], references: [id])
+  option     Option?    @relation(fields: [optionId], references: [id])
+}
+
+model Certificate {
+  id       String   @id @default(cuid())
+  userId   String
+  courseId String
+  issuedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Workshop {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  courseId    String
+  dueDate     DateTime?
+  isPublished Boolean   @default(false)
+  orgId       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  org         Company?            @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  course      Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions WorkshopSubmission[]
+}
+
+model WorkshopSubmission {
+  id           String    @id @default(cuid())
+  userId       String
+  workshopId   String
+  fileUrl      String
+  fileName     String
+  fileType     String
+  comment      String?
+  attemptCount Int       @default(1)
+  grade        Float?
+  feedback     String?
+  submittedAt  DateTime  @default(now())
+  gradedAt     DateTime?
+
+  user     User     @relation(fields: [userId], references: [id])
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+
+  @@unique([userId, workshopId])
+}

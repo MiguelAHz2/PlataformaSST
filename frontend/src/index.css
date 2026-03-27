@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-slate-50 text-slate-800;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-slate-100 p-6;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 placeholder-slate-400 transition-all duration-200;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-blue {
+    @apply badge bg-blue-100 text-blue-700;
+  }
+
+  .badge-green {
+    @apply badge bg-green-100 text-green-700;
+  }
+
+  .badge-yellow {
+    @apply badge bg-yellow-100 text-yellow-700;
+  }
+
+  .badge-red {
+    @apply badge bg-red-100 text-red-700;
+  }
+
+  .badge-slate {
+    @apply badge bg-slate-100 text-slate-600;
+  }
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animaciones */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tablas de Excel */
+.excel-preview table {
+  @apply border-collapse w-full text-xs;
+}
+.excel-preview td,
+.excel-preview th {
+  @apply border border-slate-200 px-2 py-1 text-slate-700;
+}
+.excel-preview tr:nth-child(even) {
+  @apply bg-slate-50;
+}
+.excel-preview tr:first-child td,
+.excel-preview tr:first-child th {
+  @apply bg-green-50 font-semibold text-green-800;
+}
+
+/* Contenido de lecciones */
+.lesson-content h2 {
+  @apply text-xl font-bold text-slate-800 mt-6 mb-3;
+}
+.lesson-content h3 {
+  @apply text-lg font-semibold text-slate-700 mt-4 mb-2;
+}
+.lesson-content p {
+  @apply text-slate-600 mb-3 leading-relaxed;
+}
+.lesson-content ul {
+  @apply list-disc list-inside text-slate-600 mb-3 space-y-1 ml-2;
+}
+.lesson-content ol {
+  @apply list-decimal list-inside text-slate-600 mb-3 space-y-1 ml-2;
+}
+.lesson-content strong {
+  @apply font-semibold text-slate-800;
+}
