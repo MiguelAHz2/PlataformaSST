@@ -13,6 +13,7 @@ import EvaluationEditor from './pages/admin/EvaluationEditor';
 import WorkshopsAdmin from './pages/admin/WorkshopsAdmin';
 import UsersAdmin from './pages/admin/UsersAdmin';
 import CompaniesAdmin from './pages/admin/CompaniesAdmin';
+import GeneralResourcesAdmin from './pages/admin/GeneralResourcesAdmin';
 
 import StudentDashboard from './pages/student/StudentDashboard';
 import MyCourses from './pages/student/MyCourses';
@@ -21,6 +22,7 @@ import MyEvaluations from './pages/student/MyEvaluations';
 import EvaluationTaker from './pages/student/EvaluationTaker';
 import MyWorkshops from './pages/student/MyWorkshops';
 import MyGrades from './pages/student/MyGrades';
+import InformativeResources from './pages/student/InformativeResources';
 
 function App() {
   return (
@@ -52,6 +54,7 @@ function App() {
             <Route path="workshops" element={<WorkshopsAdmin />} />
             <Route path="users" element={<UsersAdmin />} />
             <Route path="companies" element={<CompaniesAdmin />} />
+            <Route path="resources" element={<GeneralResourcesAdmin />} />
           </Route>
 
           {/* Student routes */}
@@ -65,6 +68,7 @@ function App() {
           >
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="resources" element={<InformativeResources />} />
             <Route path="courses" element={<MyCourses />} />
             <Route path="courses/:id" element={<CourseViewer />} />
             <Route path="evaluations" element={<MyEvaluations />} />

@@ -189,6 +189,25 @@ export interface Answer {
   option?: Option;
 }
 
+export type GeneralResourceKind = 'FILE' | 'EXTERNAL_LINK' | 'VIDEO_EMBED';
+
+export interface GeneralResource {
+  id: string;
+  title: string;
+  description?: string | null;
+  kind: GeneralResourceKind;
+  fileUrl?: string | null;
+  originalName?: string | null;
+  fileKind?: string | null;
+  externalUrl?: string | null;
+  order: number;
+  isPublished: boolean;
+  orgId?: string | null;
+  org?: { id: string; name: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AdminStats {
   totalUsers: number;
   totalCourses: number;

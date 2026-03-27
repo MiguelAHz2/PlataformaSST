@@ -11,6 +11,7 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
+  Newspaper,
 } from 'lucide-react';
 
 interface DashboardData {
@@ -72,6 +73,22 @@ export default function StudentDashboard() {
           </div>
         </div>
       </div>
+
+      <Link
+        to="/student/resources"
+        className="flex items-center gap-4 p-4 sm:p-5 mb-8 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-teal-200 hover:shadow-md transition-all group"
+      >
+        <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
+          <Newspaper className="w-6 h-6 text-teal-700" />
+        </div>
+        <div className="flex-1 min-w-0 text-left">
+          <p className="font-semibold text-slate-800">Recursos informativos SST</p>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Documentos, videos y enlaces generales aparte de tus cursos
+          </p>
+        </div>
+        <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-teal-600 flex-shrink-0 transition-colors" />
+      </Link>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">

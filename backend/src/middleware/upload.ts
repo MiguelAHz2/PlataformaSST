@@ -61,3 +61,9 @@ export const uploadWorkshop = multer({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
   fileFilter,
 });
+
+export const uploadGeneralResource = multer({
+  storage: createStorage('general-resources'),
+  limits: { fileSize: 100 * 1024 * 1024 },
+  fileFilter,
+});

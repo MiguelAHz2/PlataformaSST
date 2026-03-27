@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   LayoutDashboard, BookOpen, ClipboardList, LogOut,
-  Shield, GraduationCap, Award, ChevronRight, FolderOpen, Building2, X,
+  Shield, GraduationCap, Award, ChevronRight, FolderOpen, Building2, X, Newspaper,
 } from 'lucide-react';
 
 type SidebarProps = {
@@ -13,6 +13,7 @@ type SidebarProps = {
 const adminLinks = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/companies', icon: Building2, label: 'Empresas' },
+  { to: '/admin/resources', icon: Newspaper, label: 'Recursos informativos' },
   { to: '/admin/courses', icon: BookOpen, label: 'Cursos' },
   { to: '/admin/evaluations', icon: ClipboardList, label: 'Evaluaciones' },
   { to: '/admin/workshops', icon: FolderOpen, label: 'Talleres' },
@@ -20,6 +21,7 @@ const adminLinks = [
 
 const studentLinks = [
   { to: '/student/dashboard', icon: LayoutDashboard, label: 'Inicio' },
+  { to: '/student/resources', icon: Newspaper, label: 'Recursos SST' },
   { to: '/student/courses', icon: BookOpen, label: 'Mis Cursos' },
   { to: '/student/evaluations', icon: ClipboardList, label: 'Evaluaciones' },
   { to: '/student/workshops', icon: FolderOpen, label: 'Talleres' },

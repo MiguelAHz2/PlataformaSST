@@ -9,6 +9,7 @@ import evaluationRoutes from './routes/evaluations';
 import userRoutes from './routes/users';
 import workshopRoutes from './routes/workshops';
 import companyRoutes from './routes/companies';
+import generalResourceRoutes from './routes/general-resources';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/api/evaluations', evaluationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/workshops', workshopRoutes);
 app.use('/api/companies', companyRoutes);
+app.use('/api/general-resources', generalResourceRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Plataforma SST API', timestamp: new Date().toISOString() });

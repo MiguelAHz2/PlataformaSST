@@ -19,8 +19,27 @@ model Company {
 
   users       User[]
   courses     Course[]
-  workshops   Workshop[]
-  evaluations Evaluation[]
+  workshops          Workshop[]
+  evaluations        Evaluation[]
+  generalResources   GeneralResource[]
+}
+
+model GeneralResource {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  kind         String   @default("FILE")
+  fileUrl      String?
+  originalName String?
+  fileKind     String?
+  externalUrl  String?
+  order        Int      @default(0)
+  isPublished  Boolean  @default(false)
+  orgId        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  org Company? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 }
 
 model User {
