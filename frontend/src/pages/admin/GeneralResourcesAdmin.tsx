@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import api, { BACKEND_URL } from '../../lib/api';
-import { GeneralResource, GeneralResourceKind, Company } from '../../lib/types';
+import { GeneralResource, GeneralResourceKind } from '../../lib/types';
 import {
-  Newspaper, Plus, Trash2, Eye, EyeOff, X, Building2, FileText, Link2, Video,
+  Newspaper, Plus, Trash2, Eye, EyeOff, X, FileText, Link2, Video,
   AlertCircle, Edit2,
 } from 'lucide-react';
 
@@ -24,7 +24,6 @@ const FILE_KIND_COLOR: Record<string, string> = {
 
 export default function GeneralResourcesAdmin() {
   const [items, setItems] = useState<GeneralResource[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<GeneralResource | null>(null);
@@ -37,7 +36,6 @@ export default function GeneralResourcesAdmin() {
     description: '',
     kind: 'FILE' as GeneralResourceKind,
     externalUrl: '',
-    orgId: '',
     order: '0',
     isPublished: true,
   });
@@ -45,11 +43,9 @@ export default function GeneralResourcesAdmin() {
 
   const fetchData = () => {
     setLoading(true);
-    Promise.all([api.get('/general-resources'), api.get('/companies')])
-      .then(([r, c]) => {
-        setItems(r.data);
-        setCompanies(c.data);
-      })
+    api
+      .get('/general-resources')
+      .then((r) => setItems(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -65,7 +61,6 @@ export default function GeneralResourcesAdmin() {
       description: '',
       kind: 'FILE',
       externalUrl: '',
-      orgId: '',
       order: '0',
       isPublished: true,
     });
@@ -82,7 +77,6 @@ export default function GeneralResourcesAdmin() {
       description: r.description || '',
       kind: r.kind,
       externalUrl: r.externalUrl || '',
-      orgId: r.orgId || '',
       order: String(r.order),
       isPublished: r.isPublished,
     });
@@ -105,7 +99,6 @@ export default function GeneralResourcesAdmin() {
           fd.append('description', form.description);
           fd.append('order', form.order);
           fd.append('isPublished', String(form.isPublished));
-          if (form.orgId) fd.append('orgId', form.orgId);
           fd.append('file', file);
           await api.put(`/general-resources/${editing.id}`, fd);
         } else {
@@ -114,7 +107,6 @@ export default function GeneralResourcesAdmin() {
             description: form.description || null,
             order: parseInt(form.order, 10) || 0,
             isPublished: form.isPublished,
-            orgId: form.orgId || null,
             ...(editing.kind !== 'FILE' ? { externalUrl: form.externalUrl.trim() } : {}),
           });
         }
@@ -125,7 +117,6 @@ export default function GeneralResourcesAdmin() {
         fd.append('kind', form.kind);
         fd.append('order', form.order);
         fd.append('isPublished', String(form.isPublished));
-        if (form.orgId) fd.append('orgId', form.orgId);
         if (form.kind === 'FILE') {
           if (!file) {
             setError('Selecciona un archivo');
@@ -178,7 +169,7 @@ export default function GeneralResourcesAdmin() {
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Recursos informativos</h1>
           <p className="text-slate-500 mt-1">
-            Documentación, videos y enlaces para estudiantes (aparte de los cursos)
+            Contenido general para todos los estudiantes (no depende de la empresa)
           </p>
         </div>
         <button type="button" onClick={openCreate} className="btn-primary flex items-center justify-center gap-2">
@@ -224,17 +215,6 @@ export default function GeneralResourcesAdmin() {
                       {r.kind === 'FILE' && r.fileKind && (
                         <span className={`inline-block text-xs font-medium rounded px-2 py-0.5 mt-1 ml-1 ${FILE_KIND_COLOR[r.fileKind] || FILE_KIND_COLOR.FILE}`}>
                           {r.fileKind}
-                        </span>
-                      )}
-                      {r.org ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-md px-1.5 py-0.5 mt-1 ml-1">
-                          <Building2 className="w-3 h-3" />
-                          {r.org.name}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-slate-400 mt-1 ml-1">
-                          <Building2 className="w-3 h-3" />
-                          Todas las empresas
                         </span>
                       )}
                     </div>
@@ -327,22 +307,6 @@ export default function GeneralResourcesAdmin() {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Empresa</label>
-                <select
-                  className="input-field"
-                  value={form.orgId}
-                  onChange={(e) => setForm({ ...form, orgId: e.target.value })}
-                >
-                  <option value="">Todas las empresas</option>
-                  {companies.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

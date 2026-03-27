@@ -19,9 +19,8 @@ model Company {
 
   users       User[]
   courses     Course[]
-  workshops          Workshop[]
-  evaluations        Evaluation[]
-  generalResources   GeneralResource[]
+  workshops   Workshop[]
+  evaluations Evaluation[]
 }
 
 model GeneralResource {
@@ -35,11 +34,8 @@ model GeneralResource {
   externalUrl  String?
   order        Int      @default(0)
   isPublished  Boolean  @default(false)
-  orgId        String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  org Company? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 }
 
 model User {

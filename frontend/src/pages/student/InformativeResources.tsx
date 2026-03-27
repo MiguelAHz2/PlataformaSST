@@ -4,7 +4,6 @@ import { GeneralResource } from '../../lib/types';
 import { getVideoEmbedUrl } from '../../lib/embedVideo';
 import {
   Newspaper, FileText, Link2, Video, ExternalLink, Download, Loader2,
-  Building2,
 } from 'lucide-react';
 
 const KIND_LABELS: Record<string, string> = {
@@ -35,7 +34,7 @@ export default function InformativeResources() {
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Recursos SST</h1>
             <p className="text-slate-500 text-sm mt-0.5">
-              Documentación, videos y enlaces de interés general (independiente de tus cursos)
+              Material general para todos los trabajadores (aparte de los cursos por empresa)
             </p>
           </div>
         </div>
@@ -67,12 +66,6 @@ export default function InformativeResources() {
                     <span className="text-[11px] font-medium uppercase tracking-wide text-teal-700 bg-teal-50 px-2 py-0.5 rounded">
                       {KIND_LABELS[r.kind] || r.kind}
                     </span>
-                    {r.org && (
-                      <span className="text-[11px] text-slate-500 flex items-center gap-0.5">
-                        <Building2 className="w-3 h-3" />
-                        {r.org.name}
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>

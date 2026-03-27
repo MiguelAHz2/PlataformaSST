@@ -202,8 +202,6 @@ export interface GeneralResource {
   externalUrl?: string | null;
   order: number;
   isPublished: boolean;
-  orgId?: string | null;
-  org?: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
 }
