@@ -4,8 +4,8 @@
   "description": "Backend para Plataforma SST",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "prisma generate && tsc && prisma db push",
-    "start": "node dist/index.js",
+    "build": "prisma generate && tsc",
+    "start": "npx prisma db push && node dist/index.js",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "ts-node prisma/seed.ts",
