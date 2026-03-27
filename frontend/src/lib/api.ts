@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import axios from 'axios';
+import axios, { AxiosHeaders } from 'axios';
 
 // En desarrollo usa el proxy de Vite ('/api').
 // En producción: VITE_API_URL en Vercel debe ser URL absoluta con https:// (ej. https://xxx.up.railway.app).
@@ -30,6 +30,14 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  // FormData: el navegador debe enviar multipart con boundary; no usar application/json.
+  if (config.data instanceof FormData) {
+    if (config.headers instanceof AxiosHeaders) {
+      config.headers.delete('Content-Type');
+    } else if (config.headers && typeof config.headers === 'object') {
+      delete (config.headers as Record<string, unknown>)['Content-Type'];
+    }
   }
   return config;
 });
