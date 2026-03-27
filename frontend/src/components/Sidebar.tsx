@@ -2,8 +2,13 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   LayoutDashboard, BookOpen, ClipboardList, LogOut,
-  Shield, GraduationCap, Award, ChevronRight, FolderOpen, Building2,
+  Shield, GraduationCap, Award, ChevronRight, FolderOpen, Building2, X,
 } from 'lucide-react';
+
+type SidebarProps = {
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
+};
 
 const adminLinks = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -21,28 +26,47 @@ const studentLinks = [
   { to: '/student/grades', icon: Award, label: 'Calificaciones' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const links = isAdmin ? adminLinks : studentLinks;
 
   const handleLogout = () => {
     logout();
+    onCloseMobile?.();
     navigate('/login');
   };
 
+  const afterNav = () => {
+    onCloseMobile?.();
+  };
+
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-30">
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 w-[min(18rem,88vw)] max-w-[18rem] bg-slate-900 flex flex-col shadow-xl transition-transform duration-200 ease-out lg:translate-x-0 ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
+    >
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-slate-700/50">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Shield className="w-5 h-5 text-white" />
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-700/50 flex-shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-white font-bold text-sm leading-tight truncate">SST Plataforma</p>
+              <p className="text-slate-400 text-xs">Seguridad Laboral</p>
+            </div>
           </div>
-          <div>
-            <p className="text-white font-bold text-sm leading-tight">SST Plataforma</p>
-            <p className="text-slate-400 text-xs">Seguridad Laboral</p>
-          </div>
+          <button
+            type="button"
+            aria-label="Cerrar menú"
+            className="lg:hidden p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors flex-shrink-0"
+            onClick={onCloseMobile}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -70,8 +94,8 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      {/* Navigation — scroll independiente en pantallas bajas (móvil) */}
+      <nav className="flex-1 min-h-0 px-3 py-4 space-y-1 overflow-y-auto overscroll-contain touch-pan-y">
         <p className="text-slate-500 text-xs font-medium uppercase tracking-wider px-3 mb-3">
           {isAdmin ? 'Administración' : 'Mi aprendizaje'}
         </p>
@@ -79,6 +103,7 @@ export default function Sidebar() {
           <NavLink
             key={to}
             to={to}
+            onClick={afterNav}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group ${
                 isActive
